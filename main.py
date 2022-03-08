@@ -60,8 +60,8 @@ def bitfield(bits_string):
 def build_matrix_list(eps):
     n = len(eps)
     N = math.floor(n / (M * Q))
-    print(f"n = {n}")
-    print(f"N = {N}, M = {M}, Q = {Q}")
+    # print(f"n = {n}")
+    # print(f"N = {N}, M = {M}, Q = {Q}")
 
     matrix_list = []
     for index in range(N):
@@ -96,46 +96,84 @@ def binary_matrix_rank_test(input_string: str):
         matrix_rank_list.append(rank)
 
     # print(matrix_rank_list)
-    print(f"F_m = {F_m}, F_m-1 = {F_m1}, N - F_m - F_m-1 = {F_remaining}")
+    # print(f"F_m = {F_m}, F_m-1 = {F_m1}, N - F_m - F_m-1 = {F_remaining}")
 
     N = math.floor(len(bit_list) / (M * Q))  # step (4)
     square_x = ((F_m - aprox_F_m * N) ** 2) / (aprox_F_m * N)
     square_x += ((F_m1 - aprox_F_m1 * N) ** 2) / (aprox_F_m1 * N)
     square_x += ((F_remaining - aprox_remains * N) ** 2) / (aprox_remains * N)
-    print(f"square_x = {square_x}")
+    # print(f"square_x = {square_x}")
 
     P_val = math.e ** ((-square_x) / 2)  # step (5)
-    print(f"P-value = {P_val}")
+    # print(f"P-value = {P_val}")
     if P_val < threshold:
-        print("Sequence is NON-random")
-        return False
-    print("Sequence is random")
-    return True
+        # print("Sequence is NON-random")
+        return False, P_val
+    # print("Sequence is random")
+    return True, P_val
 
 
-if __name__ == '__main__':
-    # bit_list = bitfield('01011001001010101101')
-    count_non_random = 0
-    count_random = 0
-    test_count = 100
+def test():
     count_bits = 100000
-    for i in range(test_count):
+    count_random = 0
+    count_non_random = 0
+    file = open("stat2.txt", "a")
+    for density in range(count_bits):
         eps = ''
+        count = 0
         for _ in range(count_bits):
-            eps += str(random.randint(0, 1))
-        print("eps =", eps)
-        quit()
-        if binary_matrix_rank_test(eps):
+            bit = random.randint(0, 1)
+            if count < density:
+                eps += str(bit)
+                if bit == 1:
+                    count += 1
+            else:
+                eps += '0'
+
+        is_random, p_val = binary_matrix_rank_test(eps)
+        if is_random:
             count_random += 1
         else:
             count_non_random += 1
-        print("===", i+1, "-"*50)
-
+        print("===", density, count, is_random)
+        file.write(f"{count};{count_bits};{str(p_val).replace('.', ',')}\n")
+    file.close()
     print(f"Random sequence = {count_random}")
     print(f"NON-Random sequence = {count_non_random}")
 
-    eps = "000001001011" + "0"*100000
-    binary_matrix_rank_test(eps)
+
+if __name__ == '__main__':
+    test()
+    quit()
+    # bit_list = bitfield('01011001001010101101')
+    count_non_random = 0
+    count_random = 0
+    test_count = 1000
+    count_bits = 100000
+    density = 0
+    file = open("stat.txt", "a")
+    for i in range(test_count):
+        density = 0
+        eps = ''
+        for _ in range(count_bits):
+            bit = random.randint(0, 1)
+            density += bit
+            eps += str(bit)
+        # print("eps =", eps)
+
+        is_random, p_val = binary_matrix_rank_test(eps)
+        if is_random:
+            count_random += 1
+        else:
+            count_non_random += 1
+        file.write(f"{density};{count_bits};{str(p_val).replace('.', ',')}\n")
+        print("===", i + 1, "-" * 50)
+    file.close()
+    print(f"Random sequence = {count_random}")
+    print(f"NON-Random sequence = {count_non_random}")
+
+    # eps = "000001001011" + "0"*100000
+    # binary_matrix_rank_test(eps)
 
     # M = [bitfield('1 0 0 0 0 0'),
     #      bitfield('0 0 0 0 0 1'),
